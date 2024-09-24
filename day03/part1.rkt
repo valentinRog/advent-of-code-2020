@@ -13,8 +13,8 @@
           (x (in-naturals)))
       (hash-set! m (point x y) c))))
 
-(define x-max (apply max
-                     (map (lambda (e) (point-x (car e))) (hash->list m))))
+(define x-max
+  (apply max (map (lambda (e) (point-x (car e))) (hash->list m))))
 
 (let loop ((p (point 0 0))
            (n 0))
