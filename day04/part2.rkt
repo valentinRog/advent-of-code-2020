@@ -24,33 +24,23 @@
                               ((list n "in") (and (>= n 59) (<= n 76)))
                               (_ #f)))))
                "hcl" (lambda (v)
-                       (and
-                        (equal? (string-length v) 7)
-                        (let ((l (string->list v)))
-                          (and
-                           (equal? (car l) #\#)
-                           (andmap (lambda (c) (or
-                                                (and (char>=? c #\a) (char<=? c #\f))
-                                                (and (char>=? c #\0) (char<=? c #\9))))
-                                   (cdr l))))))
+                       (and (equal? (string-length v) 7)
+                            (let ((l (string->list v)))
+                              (and (equal? (car l) #\#)
+                                   (andmap (lambda (c) (or (and (char>=? c #\a) (char<=? c #\f))
+                                                           (and (char>=? c #\0) (char<=? c #\9))))
+                                           (cdr l))))))
                "ecl" (lambda (v) (set-member? (set "amb" "blu" "brn" "gry" "grn" "hzl" "oth") v))
-               "pid" (lambda (v) (and
-                                  (equal? (string-length v) 9)
-                                  (andmap
-                                   (lambda (c) (and (char>=? c #\0) (char<=? c #\9)))
-                                   (string->list v))))))
+               "pid" (lambda (v) (and (equal? (string-length v) 9)
+                                      (andmap (lambda (c) (and (char>=? c #\0) (char<=? c #\9)))
+                                              (string->list v))))))
 
 
 (define (valid? passport)
-  (let
-      ((data (filter
-              (lambda (e) (not (equal? (first e) "cid")))
-              (map (lambda (e) (string-split e ":")) (string-split passport)))))
-    (and
-     (equal? (length data) (hash-count rules))
-     (andmap
-      (lambda (e) ((hash-ref rules (first e)) (second e)))
-      data))))
+  (let ((data (filter (lambda (e) (not (equal? (first e) "cid")))
+                      (map (lambda (e) (string-split e ":")) (string-split passport)))))
+    (and (equal? (length data) (hash-count rules))
+         (andmap (lambda (e) ((hash-ref rules (first e)) (second e))) data))))
 
 (count valid? (string-split
                (string-replace (string-trim (port->string (current-input-port))) "\r" "")
