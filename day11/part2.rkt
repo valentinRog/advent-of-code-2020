@@ -42,9 +42,11 @@
 
 (define (next-state state)
   (for/fold ((acc (set))) ((p data))
-    (if (set-member? state p)
-        (if (>= (count-around p state) 5) acc (set-add acc p))
-        (if (= (count-around p state) 0) (set-add acc p) acc))))
+    (match (cons (set-member? state p) (count-around p state))
+      ((cons #t n) #:when (>= n 5) acc)
+      ((cons #t _) (set-add acc p))
+      ((cons #f 0) (set-add acc p))
+      ((cons #f _) acc))))
 
 (let loop ((cache (set)) (state (set)))
   (if (set-member? cache state) (set-count state)
