@@ -2,9 +2,9 @@
 
 (define data
   (reverse
-   (let (( l (sort
-              (map string->number (string-split (string-trim (port->string (current-input-port)))))
-              > )))
+   (let ((l (sort
+             (map string->number (string-split (string-trim (port->string (current-input-port)))))
+             > )))
      (cons (+ 3 (car l)) l))))
 
 (struct accumulator (prev n1 n3) #:transparent)
