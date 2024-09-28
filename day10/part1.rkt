@@ -1,17 +1,19 @@
 #lang racket
 
 (define data
-  (reverse
-   (let ((l (sort
-             (map string->number (string-split (string-trim (port->string (current-input-port)))))
-             > )))
-     (cons (+ 3 (car l)) l))))
+  (let ((l (sort
+            (map string->number (string-split (string-trim (port->string (current-input-port)))))
+            > )))
+    (cons 0 (reverse (cons (+ 3 (car l)) l)))))
 
-(struct accumulator (prev n1 n3) #:transparent)
+(define (sliding-window v l)
+  (for/list ((i (in-range (- l 1) (vector-length v))))
+    (for/list ((i (in-range (- (add1 i) l) (add1 i)))) (vector-ref v i))))
+
 (let
     ((res
-      (for/fold ((acc (accumulator 0 0 0))) ((j data))
-        (match (- j (accumulator-prev acc))
-          (1 (accumulator j (add1 (accumulator-n1 acc)) (accumulator-n3 acc)))
-          (3 (accumulator j (accumulator-n1 acc) (add1 (accumulator-n3 acc))))))))
-  (* (accumulator-n1 res) (accumulator-n3 res)))
+      (for/fold ((acc (cons 0 0))) ((e (sliding-window (list->vector data) 2)))
+        (match (- (second e) (car e))
+          (1 (cons (add1 (car acc)) (cdr acc)))
+          (3 (cons (car acc) (add1 (cdr acc))))))))
+  (* (car res) (cdr res)))

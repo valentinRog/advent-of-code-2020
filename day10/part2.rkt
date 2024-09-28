@@ -1,11 +1,10 @@
 #lang racket
 
 (define data
-  (reverse
-   (let ((l (sort
-             (map string->number (string-split (string-trim (port->string (current-input-port)))))
-             > )))
-     (cons (+ 3 (car l)) l))))
+  (let ((l (sort
+            (map string->number (string-split (string-trim (port->string (current-input-port)))))
+            > )))
+    (reverse (cons (+ 3 (car l)) l))))
 
 (define chunked-data
   (reverse
