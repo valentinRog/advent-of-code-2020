@@ -2,8 +2,6 @@
 
 (define m (make-hash))
 
-(struct point (x y) #:transparent)
-
 (let ((lines
        (string-split
         (string-trim (port->string (current-input-port))))))
@@ -11,17 +9,17 @@
         (y (in-naturals)))
     (for ((c (string->list line))
           (x (in-naturals)))
-      (hash-set! m (point x y) c))))
+      (hash-set! m (make-rectangular x y) c))))
 
 (define x-max
-  (apply max (map (lambda (e) (point-x (car e))) (hash->list m))))
+  (apply max (map (lambda (e) (real-part (car e))) (hash->list m))))
 
 (define (compute right down)
-  (let loop ((p (point 0 0))
+  (let loop ((p 0)
              (n 0))
     (if (hash-has-key? m p)
         (loop
-         (point (modulo (+ right (point-x p)) (add1 x-max)) (+ down (point-y p)))
+         (make-rectangular (modulo (+ right (real-part p)) (add1 x-max)) (+ down (imag-part p)))
          (if (eq? #\# (hash-ref m p)) (add1 n) n))
         n)))
 

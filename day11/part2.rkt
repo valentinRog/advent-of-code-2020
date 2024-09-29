@@ -1,44 +1,33 @@
 #lang racket
 
-(struct point (x y) #:transparent)
-
-(define (point-add p1 p2) (point (+ (point-x p1) (point-x p2)) (+ (point-y p1) (point-y p2))))
-
 (define data
   (let ((lines (string-split (string-trim (port->string (current-input-port))))))
     (for/fold ((acc (set))) ((line lines) (y (in-naturals)))
       (for/fold ((acc acc)) ((c (string->list line)) (x (in-naturals)))
-        (if (equal? c #\L) (set-add acc (point x y)) acc)))))
+        (if (equal? c #\L) (set-add acc (make-rectangular x y)) acc)))))
 
 (define (max n1 n2) (if (> n1 n2) n1 n2))
 
 (define max-p
-  (for/fold ((acc (point 0 0))) ((p data))
-    (let ((x (max (point-x acc) (point-x p))) (y (max (point-y acc) (point-y p)))) (point x y))))
+  (for/fold ((acc 0)) ((p data))
+    (let ((x (max (real-part acc) (real-part p)))
+          (y (max (imag-part acc) (imag-part p))))
+      (make-rectangular x y))))
 
 (define (outside? p)
   (or
-   (< (point-x p) 0)
-   (< (point-y p) 0)
-   (> (point-x p) (point-x max-p))
-   (> (point-y p) (point-y max-p))))
+   (< (real-part p) 0)
+   (< (imag-part p) 0)
+   (> (magnitude p) (magnitude max-p))))
 
 (define (count-around p state)
   (define (check-dir d)
-    (let loop ((p (point-add p d)))
+    (let loop ((p (+ p d)))
       (cond ((set-member? state p) #t)
             ((set-member? data p) #f)
             ((outside? p) #f)
-            (#t (loop (point-add p d))))))
-  (count check-dir (list
-                    (point 0 -1)
-                    (point 1 -1)
-                    (point 1 0)
-                    (point 1 1)
-                    (point 0 1)
-                    (point -1 1)
-                    (point -1 0)
-                    (point -1 -1))))
+            (#t (loop (+ p d))))))
+  (count check-dir (list -i 1-i 1 1+i +i -1+i -1 -1-i)))
 
 (define (next-state state)
   (for/fold ((acc (set))) ((p data))

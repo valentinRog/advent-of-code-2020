@@ -1,26 +1,14 @@
 #lang racket
 
-(struct point (x y) #:transparent)
-
-(define (point-add p1 p2) (point (+ (point-x p1) (point-x p2)) (+ (point-y p1) (point-y p2))))
-
 (define data
   (let ((lines (string-split (string-trim (port->string (current-input-port))))))
     (for/fold ((acc (set))) ((line lines) (y (in-naturals)))
       (for/fold ((acc acc)) ((c (string->list line)) (x (in-naturals)))
-        (if (equal? c #\L) (set-add acc (point x y)) acc)))))
+        (if (equal? c #\L) (set-add acc (make-rectangular x y)) acc)))))
 
 (define (count-around p state)
-  (count (lambda (d) (set-member? state (point-add p d)))
-         (list
-          (point 0 -1)
-          (point 1 -1)
-          (point 1 0)
-          (point 1 1)
-          (point 0 1)
-          (point -1 1)
-          (point -1 0)
-          (point -1 -1))))
+  (count (lambda (d) (set-member? state (+ p d)))
+         (list -i 1-i 1 1+i +i -1+i -1 -1-i)))
 
 (define (next-state state)
   (for/fold ((acc (set))) ((p data))
