@@ -10,44 +10,43 @@
 
 (define (list->pair l) (cons (car l) (second l)))
 
-(define (parse-ticket s) (map string->number (string-split s ",")))
+(define (parse-ticket s) (list->vector (map string->number (string-split s ","))))
 
 (define fields
-  (for/list ((line (string-split (car (string-split raw "\n\n")) "\n")))
+  (for/vector ((line (string-split (car (string-split raw "\n\n")) "\n")))
     (list->pair
      (map (lambda (s) (list->pair (map string->number (string-split s "-"))))
           (filter (lambda (s) (string-contains? s "-")) (string-split line))))))
 
+(define (compatibles-fields n)
+  (for/fold ((acc (set)))
+            ((i (in-range (vector-length fields))))
+    (if (in-field? (vector-ref fields i) n) (set-add acc i) acc)))
+
 (define ticket (parse-ticket (second (string-split (second (string-split raw "\n\n")) "\n"))))
 (define tickets
   (filter
-   (lambda (l) (andmap (lambda (n) (ormap (lambda (field) (in-field? field n)) fields)) l))
+   (lambda (l)
+     (andmap (lambda (n) (ormap (lambda (field) (in-field? field n)) (vector->list fields)))
+             (vector->list l)))
    (map parse-ticket (drop (string-split (last (string-split raw "\n\n")) "\n") 1))))
 
-(define (valid-arrangement? v)
-  (define (valid-ticket? ticket-v i)
-    (cond
-      ((= i (vector-length v)) #t)
-      ((in-field? (vector-ref (list->vector fields) (vector-ref v i)) (vector-ref ticket-v i)) (valid-ticket? ticket-v (add1 i)))
-      (#t #f)))
-  (andmap (lambda (l) (valid-ticket? (list->vector l) 0)) tickets))
+(define (reduce-intersections l)
+  (map (lambda (e)
+         (for/fold ((acc e)) ((hs l))
+           (if (and (subset? hs acc) (not (equal? acc hs))) (set-subtract acc hs) acc)))
+       l))
 
-(define len (length fields))
-(define (find-arrangement acc)
-    (displayln acc)
-  (if (and (>= (vector-length acc) 5) (> (vector-ref acc 3) 4)) (displayln acc) 7)
-  (cond
-    ((not (valid-arrangement? acc)) #f)
-    ((= (vector-length acc) len) acc)
-    (#t (let loop ((i 0))
-          (cond
-            ((= i len) #f)
-            ((not (vector-member i acc))
-             (match (find-arrangement (vector-append acc (vector i)))
-               (#f (loop (add1 i)))
-               (acc acc)))
-            (#t (loop (add1 i))))))))
+(define intersections
+  (for/list ((i (range (vector-length fields))))
+    (for/fold ((acc (for/set ((i (in-range (vector-length fields)))) i))) ((v tickets))
+      (set-intersect acc (compatibles-fields (vector-ref v i))))))
 
-(for/product
-    ((i (take (vector->list (find-arrangement (vector))) 6)))
-  (vector-ref (list->vector ticket) i))
+(define permutations
+  (let loop ((prev intersections))
+    (if (andmap (lambda (e) (= (set-count e) 1)) prev)
+        (list->vector (set->list (map set-first prev)))
+        (loop (reduce-intersections prev)))))
+
+(for/product ((i (in-range 6)))
+  (vector-ref ticket (vector-member i permutations)))
