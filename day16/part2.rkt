@@ -24,6 +24,7 @@
     (if (in-field? (vector-ref fields i) n) (set-add acc i) acc)))
 
 (define ticket (parse-ticket (second (string-split (second (string-split raw "\n\n")) "\n"))))
+
 (define tickets
   (filter
    (lambda (l)
