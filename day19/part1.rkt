@@ -20,12 +20,13 @@
   (let loop ((l l) (i 0))
     (let ((reduce-list
            (lambda (l ll) (for/fold ((acc (cons "" l))) ((i ll))
-                            (let ((res (loop (cdr acc) i))) (cons (string-append (car acc) (car res)) (cdr res)))))))
+                            (let ((res (loop (cdr acc) i)))
+                              (cons (string-append (car acc) (car res)) (cdr res)))))))
       (if (empty? l) (cons "" l)
           (match (hash-ref rules i)
             ((list l1 l2) (match l
                             ((list 0 l ...) (reduce-list l l1))
-                            ((list 1 l ...)(reduce-list l l2))))
+                            ((list 1 l ...) (reduce-list l l2))))
             ((list l1) (reduce-list l l1))
             (c (cons c l)))))))
 
