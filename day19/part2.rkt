@@ -33,9 +33,8 @@
 (define (generate i)
   (let loop ((acc '()))
     (let ((res (apply-choices acc i)))
-      (cond
-        ((not (empty? (cdr res))) (set (car res)))
-        (#t (set-union (loop (append acc '(0))) (loop (append acc '(1)))))))))
+      (cond ((not (empty? (cdr res))) (set (car res)))
+            (#t (set-union (loop (append acc '(0))) (loop (append acc '(1)))))))))
 
 (define r42 (generate 42))
 (define r31 (generate 31))
