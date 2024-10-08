@@ -42,17 +42,10 @@
 
 (define (v-flip tile)
   (for/hash ((z (hash-keys tile)))
-    (values (make-rectangular (- (- tile-size 1) (real-part z)) (imag-part z)) (hash-ref tile z))))
+    (values (make-rectangular (- (- (compute-tile-size tile) 1) (real-part z)) (imag-part z))
+            (hash-ref tile z))))
 
 (define (rotate tile) (v-flip (transpose tile)))
-
-(define (tile->string tile)
-  (let ((tile-size (compute-tile-size tile)))
-    (for/fold ((acc "")) ((y (in-range tile-size)))
-      (string-append
-       (for/fold ((acc acc)) ((x (in-range tile-size)))
-         (string-append acc (string (hash-ref tile (make-rectangular x y)))))
-       "\n"))))
 
 (define (configurations tile)
   (list tile
@@ -82,7 +75,6 @@
 
 (define (make-connections)
   (let loop ((acc (hash 0 (car data))))
-    (displayln (hash-count acc))
     (let (( acc (for/fold ((acc acc)) ((z (hash-keys acc)))
                   (for/fold ((acc acc)) ((zz (list (- z 1) (+ z 1) (- z 0+i) (+ z 0+i))))
                     (if (hash-has-key? acc zz)
@@ -115,8 +107,24 @@
       (for/fold ((acc acc)) ((z (hash-keys (hash-ref connections z-tile))))
         (hash-set acc (+ z (* z-tile tile-size)) (hash-ref (hash-ref connections z-tile) z))))))
 
+(define raw-monster '("                  # " "#    ##    ##    ###" " #  #  #  #  #  #   "))
+(define monster
+  (for/fold ((acc '())) ((line raw-monster) (y (in-naturals)))
+    (for/fold ((acc acc)) ((c (string->list line)) (x (in-naturals)))
+      (match c (#\# (append acc (list (make-rectangular x y)))) (_ acc)))))
 
-(for ((y (in-range (add1 (imag-part (max-by imag-part (hash-keys image)))))))
-  (for ((x (in-range (add1 (real-part (max-by real-part (hash-keys image)))))))
-    (display (hash-ref image (make-rectangular x y))))
-  (display "\n"))
+(define monsters
+  (for*/fold ((acc '()))
+             ((y (in-range (add1 (imag-part (max-by imag-part (hash-keys image))))))
+              (x (in-range (add1 (real-part (max-by real-part (hash-keys image)))))))
+    (append acc (list (for/set ((z monster)) (+ z (make-rectangular x y)))))))
+
+(define (image->set image)
+  (list->set (filter (lambda (k) (equal? (hash-ref image k) #\#)) (hash-keys image))))
+
+(define (count-monsters image)
+  (let ((image-set (image->set image)))
+    (count (lambda (monster) (equal? (set-intersect image-set monster) monster)) monsters)))
+
+(for/first ((image (configurations image)) #:when (> (count-monsters image) 0))
+  (- (set-count (image->set image)) (* (count-monsters image) (set-count monster))))
