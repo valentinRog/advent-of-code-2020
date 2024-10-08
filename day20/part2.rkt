@@ -14,20 +14,18 @@
       (hash-set acc (make-rectangular x y) c))))
 
 (define data
-  (let ((raw (string-remove (string-trim (port->string (current-input-port))) '("Tile " ":" "\r"))))
+  (let ((raw (string-remove (string-trim (port->string (current-input-port))) '("\r"))))
     (for/list ((block (string-split raw "\n\n")))
       (parse-tile (cdr (string-split block "\n"))))))
 
 (define tile-size (add1 (real-part (max-by magnitude (hash-keys (car data))))))
 
 (define borders-indexes
-  (let* ((r (stream->list (in-range tile-size)))
-         (rs (list
-              r
-              (map (lambda (i) (* i 0+i)) r)
-              (map (lambda (i) (+ (* (- tile-size 1) 0+i) i)) r)
-              (map (lambda (i) (+ (* i 0+i) (- tile-size 1))) r))))
-    (for/fold ((acc '())) ((l rs)) (append acc (list l (reverse l))))))
+  (let ((r (stream->list (in-range tile-size))))
+    (hash -i r
+          -1 (map (lambda (i) (* i 0+i)) r)
+          0+i (map (lambda (i) (+ (* (- tile-size 1) 0+i) i)) r)
+          1 (map (lambda (i) (+ (* i 0+i) (- tile-size 1))) r))))
 
 (define (border-indexes->string tile l)
   (string-join (map (lambda (z) (string (hash-ref tile z))) l) ""))
@@ -58,3 +56,5 @@
         (v-flip (rotate tile))
         (v-flip (rotate (rotate tile)))
         (v-flip (rotate (rotate (rotate tile))))))
+
+borders-indexes
