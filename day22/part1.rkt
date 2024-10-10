@@ -14,5 +14,4 @@
     ((cons (list c1 l1 ...) (list c2 l2 ...))
      (if (> c1 c2) (fight (append l1 (list c1 c2)) l2) (fight l1 (append l2 (list c2 c1)))))))
 
-(for/sum ((c (reverse (fight (car data) (second data)))) (i (in-naturals 1))) 
-    (* c i))
+(for/sum ((c (reverse (fight (car data) (second data)))) (i (in-naturals 1))) (* c i))
